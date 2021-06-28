@@ -1,0 +1,76 @@
+from selenium import webdriver
+import time
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+mydata_like = []
+mydata_comment = []
+
+data_default = []
+def search_like_comment(post_url):
+    post_url_element = [str(i) for i in post_url.split("com")][1]
+    time.sleep(1)
+    
+    browser.get(post_url) 
+    #找出帳號主頁URL
+    for account in browser.find_elements_by_css_selector("div[class='o-MQd z8cbW ']"):
+        account_element = browser.find_element_by_css_selector("a[class= 'sqdOP yWX7d     _8A5w5   ZIAjV ']")
+        account_url = account_element.get_attribute('href')
+        
+        #跳過ig詢問要不要保持登入的頁面，跳轉到帳號主頁
+        browser.get(account_url)
+        #找該篇貼文
+        find = False
+        # 不在目前的網頁元素裡，則往下滑，加載新貼文
+        while not find:
+            try:
+                # 找到對應的貼文，鼠標移入
+                post_elem = browser.find_element_by_xpath('//a[@href= "'+str(post_url_element)+'"]')
+                action = ActionChains(browser)
+                action.move_to_element(post_elem).perform()
+                # 找到需要的網頁元素
+                n_like_elem = browser.find_elements_by_class_name('-V_eO')
+                #取得讚數、留言數
+                n_like = n_like_elem[0].text
+                n_comment = n_like_elem[1].text
+                # 找到之後就可以回傳‘找到了’
+                find = True
+                mydata_like.append(n_like) #讚數加入清單
+                mydata_comment.append(n_comment) #留言數加入清單
+            except:
+                # 找不到就往下滑
+                scroll = 'window.scrollBy(0,250)'
+                browser.execute_script(scroll)
+                continue
+
+#輸入帳號密碼 
+self_account = str(input("Please enter your Instagram account:"))
+self_password = str(input("Please enter your Instagram password:"))
+                
+#輸入網址
+post_url = str(input("Please enter a Instagram post URL:"))
+
+
+browser = webdriver.Chrome('/Users/a030/Downloads/chromedriver')
+browser.get('https://www.instagram.com/') # 前往ig
+#填入ig登入資訊
+
+WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.NAME, 'username')))
+
+input_1 = browser.find_element_by_css_selector("input[name='username']")
+input_2 = browser.find_element_by_css_selector("input[type='password']")
+
+input_1.send_keys(self_account)
+input_2.send_keys(self_password)
+browser.find_element_by_css_selector("button[type='submit']").click()
+time.sleep(1)
+    
+#獲取讚數留言數
+search_like_comment(post_url)
+browser.close()
+
+#將讚數及留言數印出
+print("Likes:"+str(mydata_like[0]))
+print("Comments:"+str(mydata_comment[0]))
